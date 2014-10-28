@@ -20,138 +20,136 @@ import org.kie.api.runtime.rule.FactHandle;
  */
 public class PolicyQuoteRulesTest {
 
-	static KieBase kbase;
-	static KieSession ksession;
-	static KieRuntimeLogger klogger;
+    static KieBase kbase;
+    static KieSession ksession;
+    static KieRuntimeLogger klogger;
 
+    @BeforeClass
+    public static void setupKsession() {
+        try {
+            // load up the knowledge base and create session
+            ksession = readKnowledgeBase();
+            klogger = KieServices.Factory.get().getLoggers().newFileLogger(ksession, "src/test/java/org/acme/insurance/policyquote/policyQuote");
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+    }
 
-	@BeforeClass
-	public static void setupKsession() {
-		try {
-			// load up the knowledge base and create session
-			ksession = readKnowledgeBase();
-			klogger = KieServices.Factory.get().getLoggers().newFileLogger(ksession, "src/test/java/org/acme/insurance/policyquote/policyQuote");
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
-	}
+    @AfterClass
+    public static void closeKsession() {
+        try {
+            // closing resources
+            klogger.close();
+            ksession.dispose();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+    }
 
-	@AfterClass
-	public static void closeKsession() {
-		try {
-			// closing resources
-			klogger.close();
-			ksession.dispose();
+    @Test
+    public void riskyAdultsTest() {
 
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
-	}
+        //now create some test data
+        Driver driver= new Driver();
+        driver.setAge(30);
+        driver.setCreditScore(500);
+        driver.setNumberOfAccidents(1);
+        driver.setNumberOfTickets(0);
 
-	@Test
-	public void riskyAdultsTest() {
+        Policy policy = new Policy();
+        policy.setPolicyType("AUTO");
+        policy.setVehicleYear(2004);
 
-		//now create some test data
-		Driver driver= new Driver();
-		driver.setAge(30);
-		driver.setCreditScore(500);
-		driver.setNumberOfAccidents(1);
-		driver.setNumberOfTickets(0);
+        // insert objects into working memory
+        FactHandle driverFH = ksession.insert(driver);
+        FactHandle policyFH = ksession.insert(policy);
+        ksession.fireAllRules();
+        ksession.delete(driverFH);
+        ksession.delete(policyFH);
 
-		Policy policy = new Policy();
-		policy.setPolicyType("AUTO");
-		policy.setVehicleYear(2004);
+        assertEquals("Price is 300", new Integer(300), policy.getPrice());
+    }
 
-		// insert objects into working memory
-		FactHandle driverFH = ksession.insert(driver);
-		FactHandle policyFH = ksession.insert(policy);
-		ksession.fireAllRules();
-		ksession.delete(driverFH);
-		ksession.delete(policyFH);
+    @Test
+    public void riskyYouthsTest() {
 
-		assertEquals("Price is 300", new Integer(300), policy.getPrice());
-	}
+        //now create some test data
+        Driver driver= new Driver();
+        driver.setAge(20);
+        driver.setCreditScore(500);
+        driver.setNumberOfAccidents(1);
+        driver.setNumberOfTickets(0);
 
-	@Test
-	public void riskyYouthsTest() {
+        Policy policy = new Policy();
+        policy.setPolicyType("AUTO");
+        policy.setVehicleYear(2004);
 
-		//now create some test data
-		Driver driver= new Driver();
-		driver.setAge(20);
-		driver.setCreditScore(500);
-		driver.setNumberOfAccidents(1);
-		driver.setNumberOfTickets(0);
+        // insert objects into working memory
+        FactHandle driverFH = ksession.insert(driver);
+        FactHandle policyFH = ksession.insert(policy);
+        ksession.fireAllRules();
+        ksession.delete(driverFH);
+        ksession.delete(policyFH);
 
-		Policy policy = new Policy();
-		policy.setPolicyType("AUTO");
-		policy.setVehicleYear(2004);
+        assertEquals("Price is 700", new Integer(700), policy.getPrice());
 
-		// insert objects into working memory
-		FactHandle driverFH = ksession.insert(driver);
-		FactHandle policyFH = ksession.insert(policy);
-		ksession.fireAllRules();
-		ksession.delete(driverFH);
-		ksession.delete(policyFH);
+    }
 
-		assertEquals("Price is 700", new Integer(700), policy.getPrice());
+    @Test
+    public void safeAdultsTest() {
 
-	}
+        //now create some test data
+        Driver driver= new Driver();
+        driver.setAge(30);
+        driver.setCreditScore(500);
+        driver.setNumberOfAccidents(0);
+        driver.setNumberOfTickets(1);
 
-	@Test
-	public void safeAdultsTest() {
+        Policy policy = new Policy();
+        policy.setPolicyType("AUTO");
+        policy.setVehicleYear(2004);
 
-		//now create some test data
-		Driver driver= new Driver();
-		driver.setAge(30);
-		driver.setCreditScore(500);
-		driver.setNumberOfAccidents(0);
-		driver.setNumberOfTickets(1);
+        // insert objects into working memory
+        FactHandle driverFH = ksession.insert(driver);
+        FactHandle policyFH = ksession.insert(policy);
+        ksession.fireAllRules();
+        ksession.delete(driverFH);
+        ksession.delete(policyFH);
 
-		Policy policy = new Policy();
-		policy.setPolicyType("AUTO");
-		policy.setVehicleYear(2004);
+        assertEquals("Price is 120", new Integer(120), policy.getPrice());
+    }
 
-		// insert objects into working memory
-		FactHandle driverFH = ksession.insert(driver);
-		FactHandle policyFH = ksession.insert(policy);
-		ksession.fireAllRules();
-		ksession.delete(driverFH);
-		ksession.delete(policyFH);
+    @Test
+    public void safeYouthsTest() {
 
-		assertEquals("Price is 120", new Integer(120), policy.getPrice());
-	}
+        //now create some test data
+        Driver driver= new Driver();
+        driver.setAge(20);
+        driver.setCreditScore(500);
+        driver.setNumberOfAccidents(0);
+        driver.setNumberOfTickets(0);
 
-	@Test
-	public void safeYouthsTest() {
+        Policy policy = new Policy();
+        policy.setPolicyType("AUTO");
+        policy.setVehicleYear(2004);
+        
+        // insert objects into working memory
+        FactHandle driverFH = ksession.insert(driver);
+        FactHandle policyFH = ksession.insert(policy);
+        ksession.fireAllRules();
+        ksession.delete(driverFH);
+        ksession.delete(policyFH);
 
-		//now create some test data
-		Driver driver= new Driver();
-		driver.setAge(20);
-		driver.setCreditScore(500);
-		driver.setNumberOfAccidents(0);
-		driver.setNumberOfTickets(0);
+        assertEquals("Price is 450", new Integer(450), policy.getPrice());
+    }
 
-		Policy policy = new Policy();
-		policy.setPolicyType("AUTO");
-		policy.setVehicleYear(2004);
-		
-		// insert objects into working memory
-		FactHandle driverFH = ksession.insert(driver);
-		FactHandle policyFH = ksession.insert(policy);
-		ksession.fireAllRules();
-		ksession.delete(driverFH);
-		ksession.delete(policyFH);
-
-		assertEquals("Price is 450", new Integer(450), policy.getPrice());
-	}
-
-	private static KieSession readKnowledgeBase() throws Exception {
-		
-		KieServices ks = KieServices.Factory.get();
-	    KieContainer kContainer = ks.getKieClasspathContainer();
-	    KieSession kSession = kContainer.newKieSession();
-		
-		return kSession;
-	}
+    private static KieSession readKnowledgeBase() throws Exception {
+        
+        KieServices ks = KieServices.Factory.get();
+        KieContainer kContainer = ks.getKieClasspathContainer();
+        KieSession kSession = kContainer.newKieSession();
+        
+        return kSession;
+    }
 
 }
